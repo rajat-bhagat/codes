@@ -4,20 +4,20 @@
 #include<stdlib.h>
 
 void push();//add value to stack
-int pop();//fetch value from stack
+void pop();//fetch value from stack
 void display();
+void search();
 
 int top=-1;
-int a[10]={0};
+int a[10]={0};//size of stack
 
 int main()
 {
-	int c=0;
 	int n;
 	while(1)
 	{
 		
-		printf("\n1.PUSH\n2.Display\n3.POP\n4.Exit\n");
+		printf("\n1.PUSH\n2.Display\n3.POP\n4.Search\n5.Exit\n");
 		printf("Enter your choice:\n");
 		scanf("%d",&n);
 		switch(n)
@@ -32,14 +32,16 @@ int main()
 				pop();
 				//printf("value poped is %d",c);
 				break;
-			case 4: exit(0);
+			case 4: search();
+				break;
+			case 5: exit(0);
 		}
 	}
 }
 
 void push()
 {	int x=0;
-	if(top>=9)
+	if(top>=9)//stack size full
 	{
 		printf("\n Stack overflow");
 	}
@@ -48,22 +50,20 @@ void push()
 		printf("Enter value to push : ");
 		scanf("%d",&x);
 
-		//top++;
 		++top;
 		a[top]=x;
 	}
 }
 
-int pop()
+void pop()
 {
-	//return a[top];
-	printf("value poped is %d\n",a[top]);
-	top--;
+	printf("value poped is %d\n",a[top]);//last value entered value is poped
+	top--;//count decreased
 }
 
 void display()
 {
-	if(top==-1)
+	if(top==-1)// empty stack
 		printf("\n stack empty");
 	else
 	{
@@ -72,4 +72,26 @@ void display()
 			printf("%d ",a[i]);
 		}
 	}
+}
+
+void search()
+{
+	int find=0;
+	int count=top;
+	printf("Enter element to search");
+	scanf("%d",&find);
+	if(top==-1)
+		printf("\n stack is empty\n");
+	else
+	{
+		while(count>=0)
+		{
+			if(a[count]==find)
+			{
+				printf("index= %d",count+1);
+			}
+			count--;
+		}
+	}
+
 }

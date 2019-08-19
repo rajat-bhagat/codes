@@ -1,8 +1,10 @@
+//stack data structure implemntation using array
+
 #include<stdio.h>
 #include<stdlib.h>
 
-void push();
-int pop();
+void push();//add value to stack
+int pop();//fetch value from stack
 void display();
 
 int top=-1;
@@ -30,14 +32,14 @@ int main()
 				pop();
 				//printf("value poped is %d",c);
 				break;
-			case 4: exit(1);
+			case 4: exit(0);
 		}
 	}
 }
 
 void push()
 {	int x=0;
-	if(top==10)
+	if(top>=9)
 	{
 		printf("\n Stack overflow");
 	}
@@ -46,7 +48,8 @@ void push()
 		printf("Enter value to push : ");
 		scanf("%d",&x);
 
-		top++;
+		//top++;
+		++top;
 		a[top]=x;
 	}
 }

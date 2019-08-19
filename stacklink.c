@@ -4,19 +4,23 @@ struct node
 {
 	int data;
 	struct node* next;
+	int index;
 };
+
 
 struct node* top = NULL;
 
 void insert()
 {
+	static int i=1;
 	struct node* temp;
 	temp = (struct node*)malloc(sizeof(struct node));
 	printf("Enter Data:\n");
 	scanf("%d",&temp->data);
 	temp->next = top;
 	top = temp;
-
+	temp->index=i;
+	i++;
 }
 
 void display()
@@ -51,12 +55,32 @@ void delete()
 	}
 }
 
+void search()
+{
+ 	struct node* temp;
+ 	int t;
+   		
+	printf("Enter element to find : ");
+	scanf("%d",&t);
+
+	temp=top;
+
+	while(temp!=NULL)
+		{
+			if(temp->data==t)
+				{
+					printf("Index= %d",temp->index);
+				}
+			temp=temp->next;	
+		}						
+}
+
 void main()
 {
 	while(1)
 	{
 		int n;
-		printf("\n1.Insert\n2.Display\n3.Delete\n4.Exit\n");
+		printf("\n1.Insert\n2.Display\n3.Delete\n4.Search\n5.Exit\n");
 		printf("Enter your choice:\n");
 		scanf("%d",&n);
 		switch(n)
@@ -70,7 +94,9 @@ void main()
 			case 3:
 				delete();
 				break;
-			case 4: exit(1);
+			case 4: search();
+				break;
+			case 5: exit(0);
 		}
 	}
 

@@ -1,0 +1,1 @@
+/usr/bin/cc   -rdynamic CMakeFiles/demo.dir/src/demo.c.o  -o demo  -L/home/einfochips/lib/cmake/project/build -Wl,-rpath,/home/einfochips/lib/cmake/project/build: libbasic.so 

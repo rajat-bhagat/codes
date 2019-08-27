@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC   -shared -Wl,-soname,libbasic.so -o libbasic.so CMakeFiles/basic.dir/src/add/add.c.o CMakeFiles/basic.dir/src/sub/sub.c.o 

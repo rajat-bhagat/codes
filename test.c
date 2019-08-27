@@ -1,4 +1,4 @@
 #include <stdio.h>
 
-extern int x;
+static int x;
 x=3;

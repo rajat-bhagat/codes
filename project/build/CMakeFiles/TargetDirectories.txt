@@ -1,0 +1,9 @@
+/home/einfochips/lib/cmake/project/build/CMakeFiles/install/local.dir
+/home/einfochips/lib/cmake/project/build/CMakeFiles/install.dir
+/home/einfochips/lib/cmake/project/build/CMakeFiles/install/strip.dir
+/home/einfochips/lib/cmake/project/build/CMakeFiles/doc.dir
+/home/einfochips/lib/cmake/project/build/CMakeFiles/demo.dir
+/home/einfochips/lib/cmake/project/build/CMakeFiles/basic.dir
+/home/einfochips/lib/cmake/project/build/CMakeFiles/edit_cache.dir
+/home/einfochips/lib/cmake/project/build/CMakeFiles/rebuild_cache.dir
+/home/einfochips/lib/cmake/project/build/CMakeFiles/list_install_components.dir

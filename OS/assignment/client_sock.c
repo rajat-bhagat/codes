@@ -16,7 +16,7 @@ int q;
 char str[1024],str1[1024];
 
 struct DATANODE {
-int a_id,c_count;
+	int a_id,c_count;
 };
 struct DATANODE data;
 
@@ -24,14 +24,28 @@ FILE *fp;
 
 void *func_read(int accept_id)
 {
-printf("\nRead_thread line no.%d\n",__LINE__);
+	printf("\nRead_thread line no.%d\n",__LINE__);
 	while(1)
 	{
 		q=read(accept_id,&str,1024);
 		if(q!=0)
 		{
 			printf("\nServer : %s\n",str);
-			fp=fopen("client1.txt","a");
+			fp=fopen("client1.txt","a+");
+			if(fp==NULL)
+				printf("error opening file");
+			else
+			{
+				fprintf(fp,"\nserver:  %s\n",str);
+				fclose(fp);
+			}
+
+			if(strcmp("bye",str)==0)
+			{	
+				printf("server down");
+				exit(0);
+			}
+
 		}else
 		{
 			break;
@@ -51,6 +65,20 @@ void *func_write(int accept_id)
 		printf("\nClient:");
 		while ((str1[i++] = getchar()) != '\n');
 		temp=write(accept_id,str1,strlen(str1));
+		fp=fopen("client1.txt","a+");
+		if(fp==NULL)
+			printf("error opening file");
+		else
+		{
+			fprintf(fp,"\nMe: %s\n",str1);
+			fclose(fp);
+		}
+		if(strcmp("bye",str1)==0)
+		{
+			printf("client exiting");
+			exit(0);
+		}
+
 		i=0;
 		printf("\nline no.%d, and write status=%d\n",__LINE__,temp);
 		bzero(str1,1024);
@@ -92,9 +120,9 @@ int main()
 	}	
 
 	//connect
-	
+
 	i=0;
-	
+
 	ret= connect(socket_fd,(struct sockaddr *)&addr,addrlen);
 	if(!ret)
 	{	printf("Connected to server.\n");
@@ -111,6 +139,6 @@ int main()
 		perror("Not connected.");
 	}
 
-
+	//fclose(fp);
 	return 0;
 }

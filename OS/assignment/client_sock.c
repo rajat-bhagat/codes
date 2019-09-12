@@ -10,6 +10,7 @@
 #include<arpa/inet.h>
 #define PORT 8000
 #define MAX 5
+//#define FILE "client1.txt" 
 
 int q;
 char str[1024],str1[1024];
@@ -19,6 +20,7 @@ int a_id,c_count;
 };
 struct DATANODE data;
 
+FILE *fp;
 
 void *func_read(int accept_id)
 {
@@ -29,6 +31,7 @@ printf("\nRead_thread line no.%d\n",__LINE__);
 		if(q!=0)
 		{
 			printf("\nServer : %s\n",str);
+			fp=fopen("client1.txt","a");
 		}else
 		{
 			break;

@@ -1,0 +1,18 @@
+Me: hey
+
+server:  allbye
+
+Me: bye
+
+server:  hey 
+
+Me: bye
+
+server:  hey
+
+Me: hey
+
+server:  hola
+
+server:  bye
+

@@ -146,8 +146,8 @@ int main()
 		pthread_create(&pid,NULL,&func_read,socket_fd); //creating the read thread to perform read operation  
 		pthread_create(&pid2,NULL,&func_write,socket_fd);//creating the write thread to perform the write operation
 
-		pthread_join(pid,NULL);
-		pthread_join(pid2,NULL);// joining the threads so that they can be properly executed
+		//pthread_join(pid,NULL);
+		//pthread_join(pid2,NULL);// joining the threads so that they can be properly executed
 	}
 	else
 	{

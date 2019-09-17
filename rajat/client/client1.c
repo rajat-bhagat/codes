@@ -9,7 +9,7 @@
 #include<stdlib.h>
 #include<arpa/inet.h>
 #define PORT 8000 //port
-#define MAX 4
+#define MAX 3
 
 FILE *fp;
 pthread_mutex_t lock;
@@ -22,10 +22,6 @@ void *func_read(int accept_id)
 {
 	while(1)
 	{
-		//q=read(accept_id,&str,1024);
-		//printf("reeived: %s\n",str);
-		//if((strncmp(name,str,strlen(name))==0)||(strncmp("all",str,strlen("all"))==0))
-		//{
 		bzero(str,1024);
 		q=read(accept_id,&str,1024); // starts the reading opertion 
 		if(q!=0)
@@ -52,7 +48,6 @@ void *func_read(int accept_id)
 			break;
 		}
 		q=0;
-		//}
 		bzero(str,1024); // clearing the message buffer
 	}
 }
@@ -60,7 +55,7 @@ void *func_read(int accept_id)
 
 void *func_write(int accept_id)
 {
-//write(accept_id,name,strlen(name)); // sends only the client name to the server 
+write(accept_id,name,strlen(name)); // sends only the client name to the server 
 	
 int  i=0,j=1,temp=0; // control variables
 
@@ -131,11 +126,9 @@ int main()
 	ret= connect(socket_fd,(struct sockaddr *)&addr,addrlen);
 	if(!ret)
 	{	
-		printf("helo");
 		strcpy(name1,name);
 		strcat(name1,".txt"); // setting the file name in which the chat is to be recorded
 		x=write(socket_fd,name,strlen(name));
-		printf("%d\n",x);
 		printf("Connected to server.\n");
 		pthread_create(&pid,NULL,&func_read,socket_fd); //creating the read thread to perform read operation  
 		pthread_create(&pid2,NULL,&func_write,socket_fd);//creating the write thread to perform the write operation

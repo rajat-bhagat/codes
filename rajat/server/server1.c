@@ -10,6 +10,10 @@
 #define PORT 8000 //port 
 #define MAX 3
 
+
+char str[1024],str1[1024];
+char cname[20];
+
 struct database{
 	int c_id;
 	char client_name[20];
@@ -17,20 +21,21 @@ struct database{
 };
 struct database data[10];
 
-int max_client=0;
+int max_client=0,i=0,q,flag=0;
+struct DATANODE {
+	int a_id,c_count;
+	char client_name[20];
+};
+struct DATANODE *data1;
 
 
-void *func_read(void* database[i])
+void *func_read(void* data1)
 {
-	struct DATANODE	*info = (struct DATANODE*)data;	
+
+	struct DATANODE	*info = (struct DATANODE*)data1;	
 	read(info->a_id,&str,1024); //reading the client name 
 	strcpy(info->client_name,str);
-	strcpy(name,str);
-	if(info->a_id==database[i].a_id)
-		strcpy(database[i].client_name,str);
-	printf("id: %d  name: %s\n",database[i].a_id,database[i].client_name);
 	bzero(str,1024);
-	
 	while(1)
 	{
 		q=read(info->a_id,&str,1024); // reading the nessage sent by client 
@@ -57,53 +62,58 @@ void *func_read(void* database[i])
 
 
 void *func_write()
-  {
+{
 
-  printf("write thread on\n");
-//struct DATANODE2 *info1 ;
-//info1 = (struct DATANODE2*)data_write1;	
-int i=0,j=0; // control variables
+	printf("write thread on\n");
+	//struct DATANODE2 *info1 ;
+	//info1 = (struct DATANODE2*)data_write1;	
+	int j=0; // control variables
 
-while(1)
-{
-if() //checks that client is present or not
-{
-//while ((str1[i++] = getchar()) != '\n'); //takes the message untill enter is pressed
-gets(str1);
-printf("reply to client:");// whom to reply
-gets(cname);
-for(j=0;j<10;j++)
-{
-	if(strncmp(data[j].client_name,cname,strlen(cname)))
+	while(1)
 	{
-		//write(info1->a_id[j],&cname,strlen(cname));// sending the name of the client for whom the message is meant
-		i=write(data[j].c_id,&str1,strlen(str1));// sending the reply
-	}
-}
-if(strncmp("bye",str1,3)==0) // to shut the server down
-{
-printf("server shutting down\n");
-exit(0);
-}
+		flag=0;
+		if(i+1) //checks that client is present or not
+		{
+			bzero(str1,1024);
+			gets(str1);//reading the message from the stdin
+			printf("reply to client:");// whom to reply
+			gets(cname);
+			
+			for(j=0;j<10;j++)
+			{
+				if(strncmp(data[j].client_name,cname,strlen(cname))==0)
+				{
+					write(data[j].c_id,&str1,strlen(str1));// sending the reply to specific client
+					flag=1;
+				}
+			}
+			if(flag==0)
+				printf("\nclient not found!\n");//if client not found
 
-bzero(str1,1024); // clearing the buffer
-}
-else
-{
-printf("\nNo clients connected in last 10 sec");
-sleep(10);
-}
-}
+			if(strncmp("bye",str1,3)==0) // to shut the server down
+			{
+				printf("server shutting down\n");
+				exit(0);
+			}
+
+			bzero(str1,1024); // clearing the buffer
+		}
+		else
+		{
+			printf("\nNo clients connected in last 10 sec");
+			sleep(10);
+		}
+	}
 }
 
 
 int main()
 {
-	int ret=0,socket_fd,val=1,i=0;
+	int ret=0,socket_fd,val=1;
 	struct sockaddr_in addr;
 	int addrlen =sizeof(addr);
 	pthread_t tid_rd,tid_wr;
-	int client_count =0;
+	int count=0;
 	//struct DATANODE2 data_write;
 
 	//create socket
@@ -153,13 +163,14 @@ int main()
 	}
 	else
 		printf("sever is listening..\n");
-	
+
+	pthread_create(&tid_wr,NULL,&func_write,NULL); //creating the write thread to perform the write operation
+
 	while(1)
 	{
 		//printf("count = %d\n",count);
 		if(max_client < MAX) //resticting the number of clients
 		{	
-
 			// accept function accepts if a client requests to connect
 			data[i].c_id=accept(socket_fd,(struct sockaddr *)&addr,(socklen_t *)&addrlen);
 
@@ -170,35 +181,20 @@ int main()
 			else
 			{
 				printf("\nserver accepts the client %d.\n",i+1);
+				read(data[i].c_id,&data[i].client_name,20);//reading the name of the client
 				max_client++;
 			}
-			read(data[i].c_id,&data[i].client_name,20);
 
-				//data = malloc(sizeof(struct DATANODE));
+			data1 = malloc(sizeof(struct DATANODE));
 
-				//(*data).a_id=data_write.a_id[data_write.c_count];
-				//database[i].a_id=data_write.a_id[data_write.c_count];
-				//(*data).c_count=data_write.c_count+1;	
-				printf("accept_id of {client %d}: %d\n",i+1,data[i].c_id);// printing the client information
-				printf("%s  %d\n",data[i].client_name,strlen(data[i].client_name));
+			printf("accept_id of {client %d}: %d\n",i+1,data[i].c_id);// printing the client information
+			printf("%s\n",data[i].client_name);
+			(*data1).a_id=data[i].c_id;
+			(*data1).c_count=i+1;
 
-			//bzero(str,1024);
-			pthread_create(&tid_wr,NULL,&func_write,NULL); //creating the write thread to perform the write operation
-			pthread_create(&tid_rd,NULL,&func_read,NULL); // creating the read thread to perform the read operation
+			pthread_create(&tid_rd,NULL,&func_read,data1); // creating the read thread to perform the read operation
 			i++;
-			//data_write.c_count=data_write.c_count +1; // incrementing the count for the next client
 		}
-		/*else
-		  {
-		  if(listen(socket_fd,MAX)!=0)
-		  {
-		  perror("listen failed. ");
-		  return 0;
-		  }
-		  else
-		  printf("sever is listening..\n");
-		  }*/		
-
 	}
 	return 0;
 }

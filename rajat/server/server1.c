@@ -11,9 +11,6 @@
 #define MAX 3
 
 
-char str[1024],str1[1024];
-char cname[20];
-
 struct database{
 	int c_id;
 	char client_name[20];
@@ -31,19 +28,19 @@ struct DATANODE *data1;
 
 void *func_read(void* data1)
 {
-
+	char str[1024];
 	struct DATANODE	*info = (struct DATANODE*)data1;	
 	read(info->a_id,&str,1024); //reading the client name 
 	strcpy(info->client_name,str);
 	bzero(str,1024);
 	while(1)
 	{
-		q=read(info->a_id,&str,1024); // reading the nessage sent by client 
+		q=read(info->a_id,&str,1024); // reading the message sent by client 
 		if(q!=0) //if the read funtion reads NOT NULL value
 		{
 			printf("\nClient %s:",info->client_name);
-
 			printf(" %s\n",str);
+			//printf("%d",strlen(str));
 			if(strcmp("bye",str)==0) //when the client exits
 			{
 				max_client--;
@@ -63,21 +60,23 @@ void *func_read(void* data1)
 
 void *func_write()
 {
-
-	printf("write thread on\n");
-	//struct DATANODE2 *info1 ;
-	//info1 = (struct DATANODE2*)data_write1;	
+	char str1[1024];
+	char cname[20];
+	printf("write thread on\n");	
 	int j=0; // control variables
-
+	while(i == 0) {
+		sleep(1);
+	};
 	while(1)
 	{
 		flag=0;
 		if(i+1) //checks that client is present or not
 		{
 			bzero(str1,1024);
-			gets(str1);//reading the message from the stdin
-			printf("reply to client:");// whom to reply
-			gets(cname);
+			printf("\nreply to client: ");// whom to reply
+			scanf("%s",cname);
+			printf("Enter message: ");
+			scanf("%s",str1);//reading the message from the stdin
 			
 			for(j=0;j<10;j++)
 			{

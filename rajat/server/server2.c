@@ -18,12 +18,12 @@ char name[30],name1[30];
 int q;
 char str[1024],str1[1024];
 
-void * func_read(void *accept_id)
+void *func_read(int accept_id)
 {
 	while(1)
 	{
 		bzero(str,1024);
-		q=read((long)accept_id,&str,1024); // starts the reading opertion 
+		q=read(accept_id,&str,1024); // starts the reading opertion 
 		if(q!=0)
 		{
 			printf("\nServer : %s\n",str);
@@ -53,19 +53,17 @@ void * func_read(void *accept_id)
 }
 
 
-void * func_write(void *accept_id)
+void *func_write(int accept_id)
 {
-write((long)accept_id,name,strlen(name)); // sends only the client name to the server 
+write(accept_id,name,strlen(name)); // sends only the client name to the server 
 	
 int  i=0,j=1,temp=0; // control variables
 
 	while(j)
 	{
 		j=0;
-		//while ((str1[i++] = getchar()) != '\n');
-		printf("Enter message: ");
-		scanf("%s",str1);
-		temp=write((long)accept_id,str1,strlen(str1)); // sending the data
+		while ((str1[i++] = getchar()) != '\n');
+		temp=write(accept_id,str1,strlen(str1)); // sending the data
 		pthread_mutex_lock(&lock);
 		fp=fopen(name1,"a+"); // opening file in append mode
 		if(fp==NULL)
@@ -92,8 +90,8 @@ int  i=0,j=1,temp=0; // control variables
 int main()
 {
 	int x;
-        printf("Set client name: "); // setting the client name 
-        scanf("%s",name);
+        printf("Set client name:\n"); // setting the client name 
+        gets(name);
 	int i,ret=0,socket_fd,val=1,count=0,a[MAX];
 	struct sockaddr_in addr;
 	int addrlen =sizeof(addr);
@@ -131,13 +129,9 @@ int main()
 		strcpy(name1,name);
 		strcat(name1,".txt"); // setting the file name in which the chat is to be recorded
 		x=write(socket_fd,name,strlen(name));
-		//printf("%d\n",x);
 		printf("Connected to server.\n");
-		//creating the read thread to perform read operation  
-		pthread_create(&pid,NULL,&func_read,(void *)(unsigned long long)socket_fd); 
-
-		//creating the write thread to perform the write operation
-		pthread_create(&pid2,NULL,&func_write,(void *)(unsigned long long)socket_fd);
+		pthread_create(&pid,NULL,&func_read,socket_fd); //creating the read thread to perform read operation  
+		pthread_create(&pid2,NULL,&func_write,socket_fd);//creating the write thread to perform the write operation
 
 		pthread_join(pid,NULL);
 		pthread_join(pid2,NULL);// joining the threads so that they can be properly executed

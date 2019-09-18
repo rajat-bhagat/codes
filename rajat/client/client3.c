@@ -9,14 +9,8 @@
 #include<stdlib.h>
 #include<arpa/inet.h>
 #define PORT 8000 //port
-#define MAX 3
 
-FILE *fp;
-pthread_mutex_t lock;
-
-char name[30],name1[30];
-
-//char str[1024],str1[1024];
+char name[20],dest_client_name[20];
 
 void * func_read(void *accept_id)
 {
@@ -28,8 +22,8 @@ void * func_read(void *accept_id)
 		q=read((long)accept_id,&str,1024); // starts the reading opertion 
 		if(q!=0)
 		{
-			printf("\nServer : %s\n",str);
-			pthread_mutex_lock(&lock);
+			printf("\n%s : %s\n",dest_client_name,str);
+			/*pthread_mutex_lock(&lock);
 			fp=fopen(name1,"a+"); //file to save the chat history
  			if(fp==NULL)
 				printf("error opening file");
@@ -38,12 +32,13 @@ void * func_read(void *accept_id)
 				fprintf(fp,"server:  %s\n",str); // recording chat history in the file 
 				fclose(fp);
 			}
-			pthread_mutex_unlock(&lock);
+			pthread_mutex_unlock(&lock);*/
 			if(strncmp("bye",str,3)==0) // clients shut down if the server is down
 			{	
-				printf("server down\n");
-				pthread_mutex_destroy(&lock);
-				exit(0);
+				printf("chat closed\n");
+				pthread_exit(NULL);
+				//pthread_mutex_destroy(&lock);
+				//exit(0);
 			}
 		}else
 		{
@@ -65,11 +60,10 @@ void * func_write(void *accept_id)
 	while(j)
 	{
 		j=0;
-		//while ((str1[i++] = getchar()) != '\n');
 		printf("Enter message: ");
 		scanf("%s",str1);
 		temp=write((long)accept_id,str1,strlen(str1)); // sending the data
-		pthread_mutex_lock(&lock);
+		/*pthread_mutex_lock(&lock);
 		fp=fopen(name1,"a+"); // opening file in append mode
 		if(fp==NULL)
 			printf("error opening file");
@@ -78,12 +72,13 @@ void * func_write(void *accept_id)
 			fprintf(fp,"Me: %s\n",str1); // recording the chat history
 			fclose(fp);
 		}
-		pthread_mutex_unlock(&lock);
+		pthread_mutex_unlock(&lock);*/
 		if(strncmp("bye",str1,3)==0) // shutting the client
 		{
-			printf("client exiting\n");
-			pthread_mutex_destroy(&lock);
-			exit(0);
+			printf("chat closed\n");
+			pthread_exit(NULL);
+			//pthread_mutex_destroy(&lock);
+			//exit(0);
 		}
 
 		i=0;
@@ -92,21 +87,18 @@ void * func_write(void *accept_id)
 	}
 }
 
+
 int main()
 {
-	int x;
-        printf("Set client name: "); // setting the client name 
-        scanf("%s",name);
-	int i,ret=0,socket_fd,val=1,count=0,a[MAX];
+	int val=1, socket_fd, choice;
 	struct sockaddr_in addr;
+	char msg[100];
 	int addrlen =sizeof(addr);
-	pthread_t pid,pid2;
-	int client_count =0;
-	if(pthread_mutex_init(&lock, NULL)!=0)
-	{
-		printf("mutex failed");
-	}
-
+	pthread_t th_wr,th_rd;
+	
+	printf("Set client name: "); 
+        scanf("%s",name);
+		
 	//create a socket
 	socket_fd = socket(AF_INET,SOCK_STREAM,0);
 	if(socket_fd)
@@ -117,38 +109,55 @@ int main()
 	{	perror("socket failed\n");
 		return -1;
 	}
-
+	
 	addr.sin_family=AF_INET; // IPv4 family
 	addr.sin_port=htons(PORT); //setting the port
-
-
-	ret = inet_pton(AF_INET,"127.0.0.1",&addr.sin_addr); // assiging the address to the address variable
-	if(!ret)
+	
+	if(inet_pton(AF_INET,"127.0.0.1",&addr.sin_addr)!=1)
 	{
-		perror("failed to assign address");
-	}	
-	//sends the connect request to the server
-	ret= connect(socket_fd,(struct sockaddr *)&addr,addrlen);
-	if(!ret)
-	{	
-		strcpy(name1,name);
-		strcat(name1,".txt"); // setting the file name in which the chat is to be recorded
-		x=write(socket_fd,name,strlen(name));
-		//printf("%d\n",x);
-		printf("Connected to server.\n");
-		//creating the read thread to perform read operation  
-		pthread_create(&pid,NULL,&func_read,(void *)(unsigned long long)socket_fd); 
-
-		//creating the write thread to perform the write operation
-		pthread_create(&pid2,NULL,&func_write,(void *)(unsigned long long)socket_fd);
-
-		pthread_join(pid,NULL);
-		pthread_join(pid2,NULL);// joining the threads so that they can be properly executed
+		printf("failed to assign address\n");
 	}
+	
+	if(connect(socket_fd,(struct sockaddr *)&addr,addrlen) < 0)
+		printf("connect error\n");
 	else
 	{
-		perror("Not connected."); // connection error
+		printf("connected\n");
+		write(socket_fd,name,strlen(name));
 	}
-	pthread_mutex_destroy(&lock);
+
+	printf("1. send connection request\n2. wait for connection\n");
+	printf("Enter choice: ");
+	scanf("%d",&choice);
+	if(choice==1)
+	{
+		printf("\nEnter the destination client: ");
+		scanf("%s",dest_client_name);
+		write(socket_fd,&dest_client_name,strlen(dest_client_name));
+	}
+	else if(choice==2)
+	{
+		while(read(socket_fd,&msg,100) <= 0);
+		printf("\n%s\n",msg);
+	}
+	
+	pthread_create(&th_rd,NULL,&func_read,socket_fd);
+	pthread_create(&th_wr,NULL,&func_write,socket_fd);
+	
+	pthread_join(th_rd,NULL);
+	pthread_join(th_wr,NULL);
+
 	return 0;
 }
+
+				
+
+
+
+
+
+
+
+
+
+

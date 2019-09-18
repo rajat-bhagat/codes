@@ -18,39 +18,67 @@ struct database{
 };
 struct database data[10];
 
-int max_client=0,i=0,q,flag=0;
+int i=0,q,flag=0;
 struct datanode {
 	int a_id,c_count;
 	char client_name[20];
 };
-struct datanode *data1;
+
+char dest_client_name[20];
 
 
 void *func_read(void* data1)
 {
-	char str[1024];
-	struct datanode	*info = (struct datanode*)data1;	
-	read(info->a_id,&str,1024); //reading the client name 
-	//strcpy(info->client_name,str);
-	bzero(str,1024);
+	int j,temp;
+	char str[1024],str1[1024];
+	char msg[]="connected to ";
+	struct datanode	*info = (struct datanode*)data1;
+	read(info->a_id,&dest_client_name,20); //reading the client name 
+	for(j=0;j<10;j++)
+	{
+		if(strncmp(data[j].client_name,dest_client_name,strlen(dest_client_name))==0)
+		{
+			break;
+		}
+	}
+	temp=j;
+	strcat(msg,dest_client_name);
+	write(data[temp].c_id,&msg,strlen(msg));
+	bzero(msg,100);
+
 	while(1)
 	{
-		q=read(info->a_id,&str,1024); // reading the message sent by client 
-		if(q!=0) //if the read funtion reads NOT NULL value
+		//q=read(info->a_id,&str,1024); // reading the message sent by client 
+		//if(q!=0) //if the read funtion reads NOT NULL value
+		if(q=read(info->a_id,&str,1024)!=0)
 		{
-			printf("\nClient %s:",info->client_name);
-			printf(" %s\n",str);
+			//printf("\nClient %s:",info->client_name);
+			//printf(" %s\n",str);
 			//printf("%d",strlen(str));
-			if(strcmp("bye",str)==0) //when the client exits
+			//printf("%s\n",str);
+			//printf("Enter message: ");
+			//scanf("%s",str1);
+			write(data[temp].c_id,str,strlen(str));
+
+			/*if(strcmp("bye",str)==0) //when the client exits
 			{
 				max_client--;
-			}
-		}else
+			}*/
+		}
+		else if(q=read(data[temp].c_id,&str1,1024)!=0)
+		{
+			//printf("%s\n",str);
+			//printf("Enter message: ");
+			//scanf("%s",str1);
+			write(info->a_id,str1,strlen(str1));
+		}
+		else
 		{
 			break;
 		}
 		q=0;
 		bzero(str,1024); //clearing the message buffer 
+		bzero(str1,1024);
 
 	}
 	free(info); // deallocating the pointer
@@ -58,61 +86,16 @@ void *func_read(void* data1)
 
 
 
-void *func_write()
-{
-	char str1[1024];
-	char cname[20];
-	printf("write thread on\n");	
-	int j=0; // control variables
-	while(i == 0) {
-		sleep(1);
-	};
-	while(1)
-	{
-		flag=0;
-		if(i+1) //checks that client is present or not
-		{
-			bzero(str1,1024);
-			printf("\nreply to client: ");// whom to reply
-			scanf("%s",cname);
-			printf("Enter message: ");
-			scanf("%s",str1);//reading the message from the stdin
-			
-			for(j=0;j<10;j++)
-			{
-				if(strncmp(data[j].client_name,cname,strlen(cname))==0)
-				{
-					write(data[j].c_id,&str1,strlen(str1));// sending the reply to specific client
-					flag=1;
-				}
-			}
-			if(flag==0)
-				printf("\nclient not found!\n");//if client not found
-
-			if(strncmp("bye",str1,3)==0) // to shut the server down
-			{
-				printf("server shutting down\n");
-				exit(0);
-			}
-
-			bzero(str1,1024); // clearing the buffer
-		}
-		else
-		{
-			printf("\nNo clients connected in last 10 sec");
-			sleep(10);
-		}
-	}
-}
-
 
 int main()
 {
 	int ret=0,socket_fd,val=1;
+	int max_client=0;
 	struct sockaddr_in addr;
 	int addrlen =sizeof(addr);
 	pthread_t tid_rd,tid_wr;
 	int count=0;
+	struct datanode *data1;
 	//struct DATANODE2 data_write;
 
 	//create socket
@@ -163,8 +146,7 @@ int main()
 	else
 		printf("sever is listening..\n");
 
-	pthread_create(&tid_wr,NULL,&func_write,NULL); //creating the write thread to perform the write operation
-
+	//pthread_create(&tid_rd,NULL,);
 	while(1)
 	{
 		//printf("count = %d\n",count);
@@ -181,6 +163,7 @@ int main()
 			{
 				printf("\nserver accepts the client %d.\n",i+1);
 				read(data[i].c_id,&data[i].client_name,20);//reading the name of the client
+				printf("%s\n",data[i].client_name);
 				max_client++;
 			}
 
@@ -196,6 +179,9 @@ int main()
 			i++;
 		}
 	}
+
 	return 0;
 }
+
+
 

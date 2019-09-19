@@ -22,7 +22,7 @@ void * func_read(void *accept_id)
 		q=read((long)accept_id,&str,1024); // starts the reading opertion 
 		if(q!=0)
 		{
-			printf("\n%s : %s\n",dest_client_name,str);
+			printf("\nClient : %s\n",str);
 			/*pthread_mutex_lock(&lock);
 			fp=fopen(name1,"a+"); //file to save the chat history
  			if(fp==NULL)
@@ -53,8 +53,6 @@ void * func_read(void *accept_id)
 void * func_write(void *accept_id)
 {
 	char str1[1024];
-	//write((long)accept_id,name,strlen(name)); // sends only the client name to the server 
-	
 	int  i=0,j=1,temp=0; // control variables
 
 	while(j)
@@ -62,7 +60,7 @@ void * func_write(void *accept_id)
 		j=0;
 		printf("Enter message: ");
 		scanf("%s",str1);
-		temp=write((long)accept_id,str1,strlen(str1)); // sending the data
+		write((long)accept_id,str1,strlen(str1)); // sending the data
 		/*pthread_mutex_lock(&lock);
 		fp=fopen(name1,"a+"); // opening file in append mode
 		if(fp==NULL)
@@ -90,9 +88,9 @@ void * func_write(void *accept_id)
 
 int main()
 {
-	int val=1, socket_fd, choice;
+	int val=1, socket_fd;
 	struct sockaddr_in addr;
-	char msg[100];
+	char msg[100],choice;
 	int addrlen =sizeof(addr);
 	pthread_t th_wr,th_rd;
 	
@@ -125,28 +123,37 @@ int main()
 		printf("connected\n");
 		write(socket_fd,name,strlen(name));
 	}
-
-	printf("1. send connection request\n2. wait for connection\n");
-	printf("Enter choice: ");
-	scanf("%d",&choice);
-	if(choice==1)
+	while(1)
 	{
-		printf("\nEnter the destination client: ");
-		scanf("%s",dest_client_name);
-		write(socket_fd,&dest_client_name,strlen(dest_client_name));
-	}
-	else if(choice==2)
-	{
-		while(read(socket_fd,&msg,100) <= 0);
-		printf("\n%s\n",msg);
-	}
+		printf("1. send connection request\n2. wait for connection\n");
+		printf("Enter choice: ");
+		scanf(" %c",&choice);
+		write(socket_fd,&choice,1);
+		switch(choice)
+		{
+			case '1':
+				//write(socket_fd,"1",1);
+				printf("\nEnter the destination client: ");
+				scanf("%s",dest_client_name);
+				write(socket_fd,&dest_client_name,strlen(dest_client_name));
+				break;
+			case '2':
+				//write(socket_fd,"2",1);
+				//while(read(socket_fd,&msg,100) <= 0);
+				read(socket_fd,&msg,100);
+				printf("\n%s\n",msg);
+				break;
+			default:
+				printf("wrong choice");
+				break;
+		}
+		pthread_create(&th_wr,NULL,&func_write,socket_fd);
+		pthread_create(&th_rd,NULL,&func_read,socket_fd);
+		//pthread_create(&th_wr,NULL,&func_write,socket_fd);
 	
-	pthread_create(&th_rd,NULL,&func_read,socket_fd);
-	pthread_create(&th_wr,NULL,&func_write,socket_fd);
-	
-	pthread_join(th_rd,NULL);
-	pthread_join(th_wr,NULL);
-
+		pthread_join(th_rd,NULL);
+		pthread_join(th_wr,NULL);
+		}
 	return 0;
 }
 

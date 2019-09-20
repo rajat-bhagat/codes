@@ -10,7 +10,7 @@
 #include<arpa/inet.h>
 #define PORT 8000 //port
 
-char name[20],dest_client_name[20];
+char name[20],dest_client_name[20],sender_name[20],flag1=0,flag2=0;
 
 void * func_read(void *accept_id)
 {
@@ -22,6 +22,13 @@ void * func_read(void *accept_id)
 		q=read((long)accept_id,&str,1024); // starts the reading opertion 
 		if(q!=0)
 		{
+			/*if(strncmp("bye",str,3)==0) // clients shut down if the server is down
+			{	
+				printf("chat closed\n");
+				pthread_exit(NULL);
+				//pthread_mutex_destroy(&lock);
+				//exit(0);
+			}*/
 			printf("\nClient : %s\n",str);
 			/*pthread_mutex_lock(&lock);
 			fp=fopen(name1,"a+"); //file to save the chat history
@@ -35,11 +42,15 @@ void * func_read(void *accept_id)
 			pthread_mutex_unlock(&lock);*/
 			if(strncmp("bye",str,3)==0) // clients shut down if the server is down
 			{	
-				printf("chat closed\n");
+				flag1=1;
+				//printf("chat closed\n");
 				pthread_exit(NULL);
 				//pthread_mutex_destroy(&lock);
 				//exit(0);
 			}
+			//if(flag1==1)
+			//	pthread_exit(NULL);
+
 		}else
 		{
 			break;
@@ -73,12 +84,14 @@ void * func_write(void *accept_id)
 		pthread_mutex_unlock(&lock);*/
 		if(strncmp("bye",str1,3)==0) // shutting the client
 		{
-			printf("chat closed\n");
+			printf("chat closed bye me\n");
+			flag2=1;
 			pthread_exit(NULL);
 			//pthread_mutex_destroy(&lock);
 			//exit(0);
 		}
-
+		//if(flag2==1)
+			//pthread_exit(NULL);
 		i=0;
 		bzero(str1,1024);
 		j=1;
@@ -88,7 +101,7 @@ void * func_write(void *accept_id)
 
 int main()
 {
-	int val=1, socket_fd;
+	int val=1, socket_fd,x;
 	struct sockaddr_in addr;
 	char msg[100],choice;
 	int addrlen =sizeof(addr);
@@ -135,13 +148,16 @@ int main()
 				//write(socket_fd,"1",1);
 				printf("\nEnter the destination client: ");
 				scanf("%s",dest_client_name);
-				write(socket_fd,&dest_client_name,strlen(dest_client_name));
+				x=write(socket_fd,&dest_client_name,strlen(dest_client_name));
+				printf("%d\n",x);
 				break;
 			case '2':
 				//write(socket_fd,"2",1);
 				//while(read(socket_fd,&msg,100) <= 0);
 				read(socket_fd,&msg,100);
+				read(socket_fd,&sender_name,20);
 				printf("\n%s\n",msg);
+				//printf("%s\n",sender_name);
 				break;
 			default:
 				printf("wrong choice");

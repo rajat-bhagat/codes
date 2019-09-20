@@ -20,145 +20,122 @@ struct database data[10];
 
 
 
-int i=0,q,flag=0,temp,temp1;
+int i=0,q,flag1=0,flag2=0,temp,temp1;
 struct datanode {
 	int a_id,c_count;
 	char client_name[20];
 };
 
-char dest_client_name[20];
+char dest_client_name[20],sender_name[20];
 
 
 void *func_read(void* data1)
 {
-	char choice;
-	int j,k;
-	char str[1024],str1[1024],temp_name[20];
-	char msg[]="connected to client";
-	struct datanode	*info = (struct datanode*)data1;
-	read(info->a_id,&choice,1);
-	printf("choice: %c\n",choice);
-	if(choice=='1')
-	{
-		//printf("hello\n");
-		//printf("%s\n",info->client_name);
-		strcpy(temp_name,info->client_name);
-		//printf("%s\n",temp_name);
-		read(info->a_id,&dest_client_name,20); //reading the client name 
-		//printf("%s\n",dest_client_name);
-		/*for(j=0;j<10;j++)
-		{
-			if(strncmp(data[j].client_name,dest_client_name,strlen(dest_client_name))==0)
-			{
-				break;
-			}
-		}
-		temp=j;*/
-	}
-	if(choice == '2')
-	{
-		//printf("hey\n");
-		//strcat(msg,dest_client_name);
-		//write(data[temp].c_id,&msg,strlen(msg));
-		write(info->a_id,&msg,strlen(msg));
-		bzero(msg,100);
-	}
-	/*else
-	{
-		printf("wrong choice\n");
-	}*/
-	
-	for(j=0;j<10;j++)
-	{
-		if(strncmp(data[j].client_name,dest_client_name,strlen(dest_client_name))==0)
-		{
-			break;
-		}
-	}
-	temp=j;
-	
-	for(k=0;k<10;k++)
-	{
-		if(strncmp(data[k].client_name,temp_name,strlen(temp_name))==0)
-		{
-			break;
-		}
-	}
-	temp1=k;
-	printf("%s\n",data[temp1].client_name);
 	while(1)
 	{
-		//q=read(info->a_id,&str,1024); // reading the message sent by client 
-		//if(q!=0) //if the read funtion reads NOT NULL value
-		//if(read(info->a_id,&str,1024)!=0)
-		if(read(data[temp1].c_id,&str,1024)!=0)
+		char choice;
+		int j,k;
+		char str[1024],str1[1024];
+		char msg[]="connected to client";
+	
+		
+		struct datanode	*info = (struct datanode*)data1;
+		printf("start in id %d\n",info->a_id);
+		read(info->a_id,&choice,1);
+		printf("choice: %c\n",choice);
+		printf("before choices\n");
+		if(choice=='1')
 		{
-			//printf("\nClient %s:",info->client_name);
-			//printf(" %s\n",str);
-			//printf("%d",strlen(str));
-			//printf("%s\n",str);
-			//printf("Enter message: ");
-			//scanf("%s",str1);
-			write(data[temp].c_id,str,strlen(str));
-			//printf("%s\n",str);
-
-			/*if(strcmp("bye",str)==0) //when the client exits
+			//printf("hello\n");
+			//printf("%s\n",info->client_name);
+			strcpy(sender_name,info->client_name);
+			//printf("%s\n",temp_name);
+			read(info->a_id,&dest_client_name,20); //reading the client name 
+			//printf("%s\n",dest_client_name);
+			for(j=0;j<10;j++)
 			{
-				max_client--;
-			}*/
-		}
-		if(read(data[temp].c_id,&str1,1024)!=0)
-		{
-			//printf("%s\n",str);
-			//printf("Enter message: ");
-			//scanf("%s",str1);
-			/*for(k=0;k<10;k++)
-			{
-				if(strncmp(data[k].client_name,temp_name,strlen(temp_name))==0)
+				if(strncmp(data[j].client_name,dest_client_name,strlen(dest_client_name))==0)
 				{
 					break;
 				}
 			}
-			temp1=k;*/
-			write(data[temp1].c_id,str1,strlen(str1));
-			//printf("%s\n",str1);
+			temp=j;
 		}
-		/*else
+		if(choice == '2')
 		{
-			//break;
-		}*/
-		q=0;
-		bzero(str,1024); //clearing the message buffer 
-		bzero(str1,1024);
-
-	}
-	free(info); // deallocating the pointer
-}
-
-
-
-/*void check_choice(char option)
-{
-	char msg[]="connected to client";
-	int j=0;
-	if(option=='1')
-	{
-		read(data[i].c_id,&dest_client_name,20);
-		for(j=0;j<10;j++)
-		{
-			if(strncmp(data[j].client_name,dest_client_name,strlen(dest_client_name))==0)
+			//printf("hey\n");
+			//strcat(msg,dest_client_name);
+			write(data[temp].c_id,&msg,strlen(msg));
+			write(data[temp].c_id,&sender_name,20);
+			for(k=0;k<10;k++)
 			{
+				if(strncmp(data[k].client_name,sender_name,strlen(sender_name))==0)
+				{
+					break;
+				}
+			}
+			temp1=k;
+			printf("%s\n",sender_name);
+			//write(info->a_id,&msg,strlen(msg));
+			bzero(msg,100);
+		}
+		
+		printf("checkpoint1\n");
+		while(1)
+		{
+			//printf("checkpoint2");
+			
+			if(info->a_id==data[temp1].c_id)
+			{
+				if(read(data[temp1].c_id,&str,1024)!=0)
+				{
+					
+					write(data[temp].c_id,str,strlen(str));
+					//printf("%s\n",str);
+					if(strncmp(str,"bye",3)==0)
+					{
+						printf("%s from %s\n",str,data[temp1].client_name);
+						flag1=1;
+						//pthread_exit(NULL);
+						//break;
+					}
+				}
+			}
+			else if(info->a_id==data[temp].c_id)
+			{
+				if(read(data[temp].c_id,&str1,1024)!=0)
+				{
+					
+					write(data[temp1].c_id,str1,strlen(str1));
+					if(strncmp(str1,"bye",3)==0)
+					{
+						printf("%s from %s\n",str1,data[temp].client_name);
+						flag2=1;
+						//pthread_exit(NULL);
+						//break;
+					}
+					//printf("%s\n",str1);
+				}
+			}
+			else
+			{
+			}
+
+			if(flag1==1 || flag2==1)
+			{
+				printf("flag1= %d   flag2= %d\n",flag1,flag2);
+				//pthread_exit(NULL);
 				break;
 			}
+			q=0;
+			bzero(str,1024); //clearing the message buffer 
+			bzero(str1,1024);
+
 		}
-		temp=j;
+		//break;
+		free(info); // deallocating the pointer
 	}
-	if(option=='2')
-	{
-		write(data[i].c_id,&msg,strlen(msg));
-	}
-	bzero(msg,100);
-}*/
+}
 
 
 int main()
@@ -170,6 +147,7 @@ int main()
 	pthread_t tid_rd[30],tid_wr;
 	int count=0;
 	struct datanode *data1;
+	void *status;
 	//struct DATANODE2 data_write;
 
 	//create socket
@@ -240,9 +218,7 @@ int main()
 				//printf("%s\n",data[i].client_name);
 				max_client++;
 			}
-			//read(data[i].c_id,&choice,1);
-			//check_choice(choice);
-			//pthread_create(&tid_rd,NULL,&func_read,data1);
+			
 			data1 = malloc(sizeof(struct datanode));
 
 			printf("accept_id of {client %d}: %d\n",i+1,data[i].c_id);// printing the client information
@@ -250,8 +226,15 @@ int main()
 			(*data1).a_id=data[i].c_id;
 			strcpy((*data1).client_name,data[i].client_name);
 			(*data1).c_count=i+1;
-
-			pthread_create(&tid_rd[count++],NULL,&func_read,data1); // creating the read thread to perform the read operation
+			//while(1)
+			//{
+				// creating the read thread to perform the read operation
+				pthread_create(&tid_rd[count++],NULL,&func_read,data1); 
+				//count++;
+				//pthread_join(tid_rd[count],NULL);	
+				//if(__INT(status)==NULL)
+					//break;
+			//}
 			//count++;
 			i++;
 		}

@@ -1,3 +1,5 @@
+//client side code
+
 #include<stdio.h>
 #include<unistd.h>
 #include<sys/socket.h>
@@ -10,98 +12,59 @@
 #include<arpa/inet.h>
 #define PORT 8000 //port
 
-char name[20],dest_client_name[20],sender_name[20],flag1=0,flag2=0;
 
+//function performs the read operation and reads message from the connected client
 void * func_read(void *accept_id)
 {
 	char str[1024];
-	int q;
+	int ret;
 	while(1)
 	{
 		bzero(str,1024);
-		q=read((long)accept_id,&str,1024); // starts the reading opertion 
-		if(q!=0)
+		ret=read((long)accept_id,&str,1024); // starts the reading opertion 
+		if(ret!=0)
 		{
-			/*if(strncmp("bye",str,3)==0) // clients shut down if the server is down
-			{	
-				printf("chat closed\n");
-				pthread_exit(NULL);
-				//pthread_mutex_destroy(&lock);
-				//exit(0);
-			}*/
-			printf("\nClient : %s\n",str);
-			/*pthread_mutex_lock(&lock);
-			fp=fopen(name1,"a+"); //file to save the chat history
- 			if(fp==NULL)
-				printf("error opening file");
-			else
-			{
-				fprintf(fp,"server:  %s\n",str); // recording chat history in the file 
-				fclose(fp);
-			}
-			pthread_mutex_unlock(&lock);*/
-			if(strncmp("bye",str,3)==0) // clients shut down if the server is down
-			{	
-				flag1=1;
-				//printf("chat closed\n");
-				pthread_exit(NULL);
-				//pthread_mutex_destroy(&lock);
-				//exit(0);
-			}
-			//if(flag1==1)
-			//	pthread_exit(NULL);
+			printf("\nclient : %s\n",str);
 
+			if(strncmp("bye",str,3)==0)
+			{	
+				pthread_exit(NULL);//exit if "bye" is received
+			}
 		}else
 		{
 			break;
 		}
-		q=0;
+		ret=0;
 		bzero(str,1024); // clearing the message buffer
 	}
 }
 
 
+//function performs the write operation and sends the message to the connected client
 void * func_write(void *accept_id)
 {
 	char str1[1024];
-	int  i=0,j=1,temp=0; // control variables
 
-	while(j)
+	while(1)
 	{
-		j=0;
 		printf("Enter message: ");
 		scanf("%s",str1);
 		write((long)accept_id,str1,strlen(str1)); // sending the data
-		/*pthread_mutex_lock(&lock);
-		fp=fopen(name1,"a+"); // opening file in append mode
-		if(fp==NULL)
-			printf("error opening file");
-		else
-		{
-			fprintf(fp,"Me: %s\n",str1); // recording the chat history
-			fclose(fp);
-		}
-		pthread_mutex_unlock(&lock);*/
-		if(strncmp("bye",str1,3)==0) // shutting the client
+		
+		if(strncmp("bye",str1,3)==0) // closing the chat
 		{
 			printf("chat closed bye me\n");
-			flag2=1;
-			pthread_exit(NULL);
-			//pthread_mutex_destroy(&lock);
-			//exit(0);
+			pthread_exit(NULL);// closing the write operation
 		}
-		//if(flag2==1)
-			//pthread_exit(NULL);
-		i=0;
 		bzero(str1,1024);
-		j=1;
 	}
 }
 
 
 int main()
 {
-	int val=1, socket_fd,x;
+	char name[20],dest_client_name[20],sender_name[20];
+	int val=1, socket_fd,bytes;
 	struct sockaddr_in addr;
 	char msg[100],choice;
 	int addrlen =sizeof(addr);
@@ -129,18 +92,21 @@ int main()
 		printf("failed to assign address\n");
 	}
 	
+	//connecting to the server
 	if(connect(socket_fd,(struct sockaddr *)&addr,addrlen) < 0)
 		printf("connect error\n");
 	else
 	{
 		printf("connected\n");
+		//sending the client name
 		write(socket_fd,name,strlen(name));
 	}
 	while(1)
 	{
-		printf("1. send connection request\n2. wait for connection\n");
+		printf("1. send connection request\n2. wait for connection\n3. exit\n");
 		printf("Enter choice: ");
 		scanf(" %c",&choice);
+		//select choice
 		write(socket_fd,&choice,1);
 		switch(choice)
 		{
@@ -148,24 +114,26 @@ int main()
 				//write(socket_fd,"1",1);
 				printf("\nEnter the destination client: ");
 				scanf("%s",dest_client_name);
-				x=write(socket_fd,&dest_client_name,strlen(dest_client_name));
-				printf("%d\n",x);
+				bytes=write(socket_fd,&dest_client_name,strlen(dest_client_name));
+#ifdef DEBUG
+				//printf("%d\n",bytes);
+#endif
 				break;
 			case '2':
-				//write(socket_fd,"2",1);
-				//while(read(socket_fd,&msg,100) <= 0);
 				read(socket_fd,&msg,100);
 				read(socket_fd,&sender_name,20);
 				printf("\n%s\n",msg);
+#ifdef DEBUG
 				//printf("%s\n",sender_name);
+#endif
 				break;
-			default:
-				printf("wrong choice");
-				break;
+			case '3':
+				exit(0);
 		}
-		pthread_create(&th_wr,NULL,&func_write,socket_fd);
+		//read thread 
 		pthread_create(&th_rd,NULL,&func_read,socket_fd);
-		//pthread_create(&th_wr,NULL,&func_write,socket_fd);
+		//write thread
+		pthread_create(&th_wr,NULL,&func_write,socket_fd);
 	
 		pthread_join(th_rd,NULL);
 		pthread_join(th_wr,NULL);

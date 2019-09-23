@@ -1,3 +1,5 @@
+//server side code
+
 #include<stdio.h>
 #include<unistd.h>
 #include<sys/socket.h>
@@ -20,7 +22,7 @@ struct database data[10];
 
 
 
-int i=0,q,flag1=0,flag2=0,temp,temp1;
+int client_increment=0,sender_exit_flag=0,dest_exit_flag=0,temp_sender_id,temp_dest_id;
 struct datanode {
 	int a_id,c_count;
 	char client_name[20];
@@ -28,113 +30,121 @@ struct datanode {
 
 char dest_client_name[20],sender_name[20];
 
-
+//function performs the read operation and reads message from the connected clients and send them to each other
 void *func_read(void* data1)
 {
-	while(1)
-	{
-		char choice;
-		int j,k;
-		char str[1024],str1[1024];
-		char msg[]="connected to client";
 	
-		
-		struct datanode	*info = (struct datanode*)data1;
-		printf("start in id %d\n",info->a_id);
+	char choice;
+	int sender_index,dest_index;
+	char str[1024],str1[1024];
+	char msg[]="connected to client";
+	struct datanode	*info = (struct datanode*)data1;
+	while(1)
+	{	
+		sender_exit_flag=0;dest_exit_flag=0;
+#ifdef DEBUG
+		//printf("\nstart in id %d\n",info->a_id);
+#endif
 		read(info->a_id,&choice,1);
 		printf("choice: %c\n",choice);
-		printf("before choices\n");
+		printf("\nbefore choices\n");
 		if(choice=='1')
 		{
-			//printf("hello\n");
-			//printf("%s\n",info->client_name);
 			strcpy(sender_name,info->client_name);
-			//printf("%s\n",temp_name);
-			read(info->a_id,&dest_client_name,20); //reading the client name 
-			//printf("%s\n",dest_client_name);
-			for(j=0;j<10;j++)
+			//reading the destination client name 
+			read(info->a_id,&dest_client_name,20); 
+
+			for(dest_index=0;dest_index<10;dest_index++)
 			{
-				if(strncmp(data[j].client_name,dest_client_name,strlen(dest_client_name))==0)
+				if(strncmp(data[dest_index].client_name,dest_client_name,strlen(dest_client_name))==0)
 				{
 					break;
 				}
 			}
-			temp=j;
+			//getting the destination client id
+			temp_dest_id=dest_index;
+#ifdef DEBUG
+			//printf("\nin id %d\n",info->a_id);
+#endif
 		}
 		if(choice == '2')
 		{
-			//printf("hey\n");
-			//strcat(msg,dest_client_name);
-			write(data[temp].c_id,&msg,strlen(msg));
-			write(data[temp].c_id,&sender_name,20);
-			for(k=0;k<10;k++)
+			//connected to destination client
+			write(data[temp_dest_id].c_id,&msg,strlen(msg));
+			sleep(1);
+			write(data[temp_dest_id].c_id,&sender_name,20);
+
+			for(sender_index=0;sender_index<10;sender_index++)
 			{
-				if(strncmp(data[k].client_name,sender_name,strlen(sender_name))==0)
+				if(strncmp(data[sender_index].client_name,sender_name,strlen(sender_name))==0)
 				{
 					break;
 				}
 			}
-			temp1=k;
-			printf("%s\n",sender_name);
-			//write(info->a_id,&msg,strlen(msg));
-			bzero(msg,100);
+			//getting the sender client id
+			temp_sender_id=sender_index;
+#ifdef DEBUG
+			//printf("\nin id %d\n",info->a_id);
+#endif
 		}
 		
-		printf("checkpoint1\n");
+		printf("\ncheckpoint1\n");
 		while(1)
-		{
-			//printf("checkpoint2");
-			
-			if(info->a_id==data[temp1].c_id)
+		{	
+			//if the sender client sends the data
+			if(info->a_id==data[temp_sender_id].c_id)
 			{
-				if(read(data[temp1].c_id,&str,1024)!=0)
+				if(read(data[temp_sender_id].c_id,&str,1024)!=0)
 				{
 					
-					write(data[temp].c_id,str,strlen(str));
-					//printf("%s\n",str);
+					write(data[temp_dest_id].c_id,str,strlen(str));
 					if(strncmp(str,"bye",3)==0)
 					{
-						printf("%s from %s\n",str,data[temp1].client_name);
-						flag1=1;
-						//pthread_exit(NULL);
-						//break;
+						printf("%s from %s\n",str,data[temp_sender_id].client_name);
+						sender_exit_flag=1;//chat close
 					}
+#ifdef DEBUG
+					//printf("\nstart in id %d\n",info->a_id);
+#endif
 				}
+				bzero(str,1024);
 			}
-			else if(info->a_id==data[temp].c_id)
+			//if the destination client sends data
+			else if(info->a_id==data[temp_dest_id].c_id)
 			{
-				if(read(data[temp].c_id,&str1,1024)!=0)
+				if(read(data[temp_dest_id].c_id,&str1,1024)!=0)
 				{
 					
-					write(data[temp1].c_id,str1,strlen(str1));
+					write(data[temp_sender_id].c_id,str1,strlen(str1));
 					if(strncmp(str1,"bye",3)==0)
 					{
-						printf("%s from %s\n",str1,data[temp].client_name);
-						flag2=1;
-						//pthread_exit(NULL);
-						//break;
+						printf("%s from %s\n",str1,data[temp_dest_id].client_name);
+						dest_exit_flag=1;//chat close
 					}
-					//printf("%s\n",str1);
+#ifdef DEBUG
+					//printf("\nstart in id %d\n",info->a_id);
+#endif
 				}
+				bzero(str1,1024);
 			}
 			else
 			{
 			}
 
-			if(flag1==1 || flag2==1)
+			if(sender_exit_flag==1 || dest_exit_flag==1)
 			{
-				printf("flag1= %d   flag2= %d\n",flag1,flag2);
-				//pthread_exit(NULL);
-				break;
+#ifdef DEBUG
+				//printf("sender_exit_flag= %d   dest_exit_flag= %d\n",sender_exit_flag,dest_exit_flag);
+#endif
+				break;//ready for next iteration
 			}
-			q=0;
 			bzero(str,1024); //clearing the message buffer 
 			bzero(str1,1024);
 
-		}
-		//break;
-		free(info); // deallocating the pointer
+		}	 
 	}
+	// deallocating the pointer
+	free(info);
 }
 
 
@@ -145,7 +155,7 @@ int main()
 	struct sockaddr_in addr;
 	int addrlen =sizeof(addr);
 	pthread_t tid_rd[30],tid_wr;
-	int count=0;
+	int count_rd_thread=0;
 	struct datanode *data1;
 	void *status;
 	//struct DATANODE2 data_write;
@@ -198,45 +208,39 @@ int main()
 	else
 		printf("sever is listening..\n");
 
-	//pthread_create(&tid_rd,NULL,);
 	while(1)
 	{
-		//printf("count = %d\n",count);
 		if(max_client < MAX) //resticting the number of clients
 		{	
 			// accept function accepts if a client requests to connect
-			data[i].c_id=accept(socket_fd,(struct sockaddr *)&addr,(socklen_t *)&addrlen);
+			data[client_increment].c_id=accept(socket_fd,(struct sockaddr *)&addr,(socklen_t *)&addrlen);
 
-			if(data[i].c_id<0)
+			if(data[client_increment].c_id<0)
 			{
 				perror("\nserver accept failed\n");
 			}
 			else
 			{
-				printf("\nserver accepts the client %d.\n",i+1);
-				read(data[i].c_id,&data[i].client_name,20);//reading the name of the client
-				//printf("%s\n",data[i].client_name);
+				printf("\nserver accepts the client %d.\n",client_increment+1);
+				//reading the name of the client
+				read(data[client_increment].c_id,&data[client_increment].client_name,20);
 				max_client++;
 			}
 			
 			data1 = malloc(sizeof(struct datanode));
 
-			printf("accept_id of {client %d}: %d\n",i+1,data[i].c_id);// printing the client information
-			printf("%s\n",data[i].client_name);
-			(*data1).a_id=data[i].c_id;
-			strcpy((*data1).client_name,data[i].client_name);
-			(*data1).c_count=i+1;
-			//while(1)
-			//{
-				// creating the read thread to perform the read operation
-				pthread_create(&tid_rd[count++],NULL,&func_read,data1); 
-				//count++;
-				//pthread_join(tid_rd[count],NULL);	
-				//if(__INT(status)==NULL)
-					//break;
-			//}
-			//count++;
-			i++;
+			// printing the client information
+			printf("accept_id of {client %d}: %d\n",client_increment+1,data[client_increment].c_id);
+			printf("%s\n",data[client_increment].client_name);
+
+			//passing information to thread function
+			(*data1).a_id=data[client_increment].c_id;
+			strcpy((*data1).client_name,data[client_increment].client_name);
+			(*data1).c_count=client_increment+1;
+
+			// creating the read thread to perform the read operation
+			pthread_create(&tid_rd[count_rd_thread++],NULL,&func_read,data1); 
+			client_increment++;
 		}
 	}
 

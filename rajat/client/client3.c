@@ -131,9 +131,9 @@ int main()
 				exit(0);
 		}
 		//read thread 
-		pthread_create(&th_rd,NULL,&func_read,socket_fd);
+		pthread_create(&th_rd,NULL,&func_read,(void *)(unsigned long long)socket_fd);
 		//write thread
-		pthread_create(&th_wr,NULL,&func_write,socket_fd);
+		pthread_create(&th_wr,NULL,&func_write,(void *)(unsigned long long)socket_fd);
 	
 		pthread_join(th_rd,NULL);
 		pthread_join(th_wr,NULL);

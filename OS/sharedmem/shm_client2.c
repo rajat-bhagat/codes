@@ -5,18 +5,22 @@
 #include <stdio.h> 
 #include <string.h>
 #include<semaphore.h>
+#include<fcntl.h>
 
-//sem_t mutex;
+sem_t *mutex;
 
 int main() 
 { 
-	pthread_mutex_t mutex;
-	pthread_mutex_init(&mutex,NULL);
+	//pthread_mutex_t mutex;
+	//pthread_mutex_init(&mutex,NULL);
 	//sem_init(&mutex,1,1);	
 	// ftok to generate unique key 
 	char e[]="end";
 	int c;
 	key_t key = ftok("shmfile",65); 
+	mutex = sem_open("sem_write",O_CREAT, 0666, 1);
+
+	sem_unlink("sem_write");
 
 	// shmget returns an identifier in shmid 
 	int shmid = shmget(key,1024,0666|IPC_CREAT); 
@@ -25,12 +29,15 @@ int main()
 	//sem_wait(&mutex);
 	char *str = (char*) shmat(shmid,NULL,0); 
 	//sem_post(&mutex);	
+	
 	while(1)
 	{
 		printf("Write Data : "); 
-		pthread_mutex_lock(&mutex);
+		//pthread_mutex_lock(&mutex);
+		sem_wait(mutex);
 		fgets(str,20,stdin); 
-		pthread_mutex_unlock(&mutex);
+		//pthread_mutex_unlock(&mutex);
+		sem_post(mutex);
 		printf("Data written in memory: %s\n",str);
 		c=strncmp("end",str,3);
 		if(c==0)
@@ -41,7 +48,7 @@ int main()
 
 	//detach from shared memory  
 	shmdt(str); 
-	pthread_mutex_destroy(&mutex);
-	//sem_destroy(&mutex);
+	//pthread_mutex_destroy(&mutex);
+	sem_destroy(mutex);
 	return 0; 
 } 

@@ -8,53 +8,106 @@
 #include<semaphore.h>
 #include<fcntl.h>
 
-sem_t *mutex;
+sem_t *read_block,*write_block;
+pthread_mutex_t lock;
 
+struct shmseg{
+	int id;
+	char message[256];
+};
+
+void * func_write(void * args)
+{
+	int *t;
+	//printf("\nin write thread\n");
+	while(1)
+	{
+		struct shmseg *f = (struct shmseg *)args;
+		//pthread_mutex_lock(&lock);
+		//sem_wait(write_block);
+		printf("enter data: ");
+		scanf("%s",(*f).message);
+		sem_wait(write_block);
+		pthread_mutex_lock(&lock);
+		//scanf("%s",(*f).message);
+		(*f).id=0;
+		//printf("\nin write thread\n");
+		printf("\ndata entered is : %s\n",(*f).message);
+		pthread_mutex_unlock(&lock);
+		sleep(1);
+		sem_post(write_block);
+		if(strncmp((*f).message,"bye",3)==0)
+			exit(0);
+		//sleep(2);
+		//pthread_mutex_unlock(&lock);
+		sleep(1);
+	}
+}
+
+void *func_read(void *args)
+{
+	struct shmseg *f = (struct shmseg *)args;
+	char *t;
+	//printf("\nin read thread\n");
+	while(1)
+	{
+		sem_wait(read_block);
+		pthread_mutex_lock(&lock);
+		//printf("\nread thread\n");
+		if((*f).id==1){
+			printf("\ndata received is : %s\n",(*f).message);
+			//printf("\nin read thread\n");
+		}
+
+		pthread_mutex_unlock(&lock);
+		sem_post(read_block);
+		sleep(2);
+		//pthread_mutex_unlock(&lock);
+	}
+}
+		
 
 int main() 
-{ 
-	//pthread_mutex_t mutex;
-	//pthread_mutex_init(&mutex,NULL);
-	mutex = sem_open("sem_write", O_CREAT, 0666, 1);
+{
+	pthread_t tid_r,tid_w;
+	struct shmseg *buffer;
 
-	sem_unlink("sem_write");
+	pthread_mutex_init(&lock,NULL);
 
-//	sem_init(&mutex,1,1);
-	//char e[]="end";
-	int c;
+	write_block = sem_open("sem1", O_CREAT|O_EXCL, 0666, 1);
+	if(write_block==NULL)
+		printf("\nsemaphore1 not created\n");
+	read_block = sem_open("sem2",O_CREAT|O_EXCL, 0666,1);
+	if(read_block==NULL)
+		printf("\nsemaphore2 not created\n");
+	//sem_unlink("sem1");
+	//sem_unlink("sem2");
+
+
 	// ftok to generate unique key 
 	key_t key = ftok("shmfile",65); 
 
 	// shmget returns an identifier in shmid 
-	int shmid = shmget(key,1024,0666|IPC_CREAT); 
-//	sem_wait(&mutex);
+	int shmid = shmget(key,sizeof(struct shmseg),0666|IPC_CREAT); 
+
 	// shmat to attach to shared memory 
-	char *str1 = (char*) shmat(shmid,NULL,0); 
-	//char *str1;
-//	sem_post(&mutex);
-	//printf("before while loop\n");
-	while(1)
-	{
-		//printf("entered while loop\n");
-		//printf("before sem_wait");
-		sem_wait(mutex);
-		//printf("after sem_wait");
-		printf("Data read from memory: %s\n",str1);
-		sem_post(mutex);
-		c=strncmp(str1,"end",3);
-		if(c==0)
-		{
-			exit(0);
-		}
-		sleep(2);
-	}	
+	buffer = (struct shmseg *) shmat(shmid,NULL,0); 
+
+	pthread_create(&tid_w,NULL,func_write,(void *)buffer);
+	pthread_create(&tid_r,NULL,func_read,(void *)buffer);
+
+	
+	pthread_join(tid_r,NULL);
+	pthread_join(tid_w,NULL);
+	
 
 	//detach from shared memory  
-	shmdt(str1); 
+	shmdt(buffer); 
 
 	// destroy the shared memory 
 	shmctl(shmid,IPC_RMID,NULL); 
-	//pthread_mutex_destroy(&mutex);
-	sem_destroy(&mutex);
+	pthread_mutex_destroy(&lock);
+	sem_destroy(write_block);
+	sem_destroy(read_block);
 	return 0; 
 } 

@@ -51,6 +51,7 @@ int main()
 {
 	int b; 
 	pthread_t rtid,wtid;
+	char name[20];
 	//sem_init(&readblock,0,1);
 	//sem_init(&writeblock,1,1);
 	struct shmmsg *data;
@@ -58,6 +59,7 @@ int main()
 	pthread_mutex_init(&mutex,NULL);
 
 	writeblock = sem_open("sem_write",O_CREAT, 0644, 1);
+	sem_unlink("sem_write");
 	printf("semaphore initialized\n");
 
 	//readblock = sem_open("sem_read",O_CREAT, 0644, 1);
@@ -77,7 +79,8 @@ int main()
 	printf("shared memory attached\n");
 
 	printf("enter your name: ");
-	scanf("%s",data->writer_name);
+	scanf("%s",name);
+	strcpy(data->writer_name,name);
 
 	pthread_create(&wtid,NULL,writer,(void *)data);
 	//pthread_create(&rtid,NULL,reader,(void *)data);

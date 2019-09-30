@@ -61,6 +61,7 @@ int main()
 
 	pthread_mutex_init(&mutex,NULL);
 	writeblock = sem_open("sem_write", 0);
+	sem_unlink("sem_write");
 	//readblock = sem_open("sem_read", 0);
 
 	// ftok to generate unique key 

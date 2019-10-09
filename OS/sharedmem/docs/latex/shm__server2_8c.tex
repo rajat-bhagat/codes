@@ -1,0 +1,113 @@
+\hypertarget{shm__server2_8c}{}\section{src/shm\+\_\+server2.c File Reference}
+\label{shm__server2_8c}\index{src/shm\+\_\+server2.\+c@{src/shm\+\_\+server2.\+c}}
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$sys/shm.\+h$>$}\newline
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$unistd.\+h$>$}\newline
+{\ttfamily \#include $<$pthread.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$semaphore.\+h$>$}\newline
+{\ttfamily \#include $<$fcntl.\+h$>$}\newline
+Include dependency graph for shm\+\_\+server2.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{shm__server2_8c__incl}
+\end{center}
+\end{figure}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structshmseg}{shmseg}
+\begin{DoxyCompactList}\small\item\em this is the message structure containing the id of the message writer and the message \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void $\ast$ \hyperlink{shm__server2_8c_af825808a184ae13bc67c961b0ed1a377}{func\+\_\+write} (void $\ast$args)
+\item 
+void $\ast$ \hyperlink{shm__server2_8c_ace3f9ecb971163860b43eb90bcd75ff2}{func\+\_\+read} (void $\ast$args)
+\item 
+int \hyperlink{shm__server2_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}{main} ()
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+pthread\+\_\+mutex\+\_\+t \hyperlink{shm__server2_8c_a0abaf4b5d42c4e5d19190035fade3599}{lock}
+\begin{DoxyCompactList}\small\item\em this the mutex to maintain lock between the threads \end{DoxyCompactList}\end{DoxyCompactItemize}
+\textbf{ }\par
+\begin{DoxyCompactItemize}
+\item 
+sem\+\_\+t $\ast$ \hyperlink{shm__server2_8c_a31dc0ff5363c41ad195f7e27d2d10ca9}{read\+\_\+block}
+\begin{DoxyCompactList}\small\item\em these are the read and write semaphore pointers to maintain exclusivity between the server and client processes \end{DoxyCompactList}\item 
+sem\+\_\+t $\ast$ \hyperlink{shm__server2_8c_a1ba04b4da8bf3354235de7186f980e7c}{write\+\_\+block}
+\begin{DoxyCompactList}\small\item\em these are the read and write semaphore pointers to maintain exclusivity between the server and client processes \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{shm__server2_8c_ace3f9ecb971163860b43eb90bcd75ff2}\label{shm__server2_8c_ace3f9ecb971163860b43eb90bcd75ff2}} 
+\index{shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}!func\+\_\+read@{func\+\_\+read}}
+\index{func\+\_\+read@{func\+\_\+read}!shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}}
+\subsubsection{\texorpdfstring{func\+\_\+read()}{func\_read()}}
+{\footnotesize\ttfamily void$\ast$ func\+\_\+read (\begin{DoxyParamCaption}\item[{void $\ast$}]{args }\end{DoxyParamCaption})}
+
+this function is the read function used by the read thread 
+\begin{DoxyParams}{Parameters}
+{\em args} & it contains the address of the shared memory shared between the server and the client \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{shm__server2_8c_af825808a184ae13bc67c961b0ed1a377}\label{shm__server2_8c_af825808a184ae13bc67c961b0ed1a377}} 
+\index{shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}!func\+\_\+write@{func\+\_\+write}}
+\index{func\+\_\+write@{func\+\_\+write}!shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}}
+\subsubsection{\texorpdfstring{func\+\_\+write()}{func\_write()}}
+{\footnotesize\ttfamily void$\ast$ func\+\_\+write (\begin{DoxyParamCaption}\item[{void $\ast$}]{args }\end{DoxyParamCaption})}
+
+this function is the write function used by the write thread 
+\begin{DoxyParams}{Parameters}
+{\em args} & it contains the address of the shared memory shared between the server and the client \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{shm__server2_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}\label{shm__server2_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}} 
+\index{shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}!main@{main}}
+\index{main@{main}!shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}}
+\subsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+this function is the main funtion which creates the semaphores, mutex, shared memory and the threads.
+
+\begin{DoxyReturn}{Returns}
+returns 0 as return type is int 
+\end{DoxyReturn}
+
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{shm__server2_8c_a0abaf4b5d42c4e5d19190035fade3599}\label{shm__server2_8c_a0abaf4b5d42c4e5d19190035fade3599}} 
+\index{shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}!lock@{lock}}
+\index{lock@{lock}!shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}}
+\subsubsection{\texorpdfstring{lock}{lock}}
+{\footnotesize\ttfamily pthread\+\_\+mutex\+\_\+t lock}
+
+
+
+this the mutex to maintain lock between the threads 
+
+\mbox{\Hypertarget{shm__server2_8c_a31dc0ff5363c41ad195f7e27d2d10ca9}\label{shm__server2_8c_a31dc0ff5363c41ad195f7e27d2d10ca9}} 
+\index{shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}!read\+\_\+block@{read\+\_\+block}}
+\index{read\+\_\+block@{read\+\_\+block}!shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}}
+\subsubsection{\texorpdfstring{read\+\_\+block}{read\_block}}
+{\footnotesize\ttfamily sem\+\_\+t$\ast$ read\+\_\+block}
+
+
+
+these are the read and write semaphore pointers to maintain exclusivity between the server and client processes 
+
+\mbox{\Hypertarget{shm__server2_8c_a1ba04b4da8bf3354235de7186f980e7c}\label{shm__server2_8c_a1ba04b4da8bf3354235de7186f980e7c}} 
+\index{shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}!write\+\_\+block@{write\+\_\+block}}
+\index{write\+\_\+block@{write\+\_\+block}!shm\+\_\+server2.\+c@{shm\+\_\+server2.\+c}}
+\subsubsection{\texorpdfstring{write\+\_\+block}{write\_block}}
+{\footnotesize\ttfamily sem\+\_\+t $\ast$ write\+\_\+block}
+
+
+
+these are the read and write semaphore pointers to maintain exclusivity between the server and client processes 
+

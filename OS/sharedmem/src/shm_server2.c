@@ -31,7 +31,10 @@
 
 
 ///these are the read and write semaphore pointers to maintain exclusivity between the server and client processes
+//@{
 sem_t *read_block,*write_block;
+///@}
+
 
 /// this the mutex to maintain lock between the threads
 pthread_mutex_t lock;
@@ -59,8 +62,6 @@ struct shmseg{
  */
 void * func_write(void * args)
 {
-	int *t;
-	//printf("\nin write thread\n");
 	while(1)
 	{
 		struct shmseg *f = (struct shmseg *)args;
@@ -68,9 +69,7 @@ void * func_write(void * args)
 		scanf("%s",(*f).message);
 		sem_wait(write_block);
 		pthread_mutex_lock(&lock);
-		//scanf("%s",(*f).message);
 		(*f).id=0;
-		//printf("\nin write thread\n");
 		printf("\ndata entered is : %s\n",(*f).message);
 		sleep(1);
 		pthread_mutex_unlock(&lock);
@@ -89,22 +88,17 @@ void * func_write(void * args)
 void *func_read(void *args)
 {
 	struct shmseg *f = (struct shmseg *)args;
-	char *t;
-	//printf("\nin read thread\n");
 	while(1)
 	{
 		sem_wait(read_block);
 		pthread_mutex_lock(&lock);
-		//printf("\nread thread\n");
 		if((*f).id==1){
 			printf("\ndata received is : %s\n",(*f).message);
-			//printf("\nin read thread\n");
 		}
 
 		pthread_mutex_unlock(&lock);
 		sem_post(read_block);
 		sleep(2);
-		//pthread_mutex_unlock(&lock);
 	}
 }
 		
@@ -119,16 +113,14 @@ int main()
 	struct shmseg *buffer;
 
 	pthread_mutex_init(&lock,NULL);
-
+	
+	// the shared semaphores are opened  
 	write_block = sem_open("sem1", O_CREAT|O_EXCL, 0666, 1);
 	if(write_block==NULL)
 		printf("\nsemaphore1 not created\n");
 	read_block = sem_open("sem2",O_CREAT|O_EXCL, 0666,1);
 	if(read_block==NULL)
 		printf("\nsemaphore2 not created\n");
-	//sem_unlink("sem1");
-	//sem_unlink("sem2");
-
 
 	// ftok to generate unique key 
 	key_t key = ftok("shmfile",65); 
